@@ -4,6 +4,13 @@ import { GiftedChat } from 'react-native-gifted-chat'
 export default class App extends React.Component {
   state = {
     messages: [],
+    watsoninput:{
+      input:"",
+      sessionId:"",
+      messageContext:""
+    },
+
+
   }
 
   componentWillMount() {
@@ -20,22 +27,37 @@ export default class App extends React.Component {
           },
         },
       ],
-    })
+      watsoninput:{
+        input:"",
+        sessionId:"",
+        messageContext:""
+      },
+  
+    }
+   
+  )
   }
 
   onSend(messages = []) {
     console.log("messages "+ messages);
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, messages),
-      
+      watsoninput:{
+        input:messages[0].text,
+        sessionId:previousState.sessionId,
+        messageContext:previousState.messageContext
+      }
     }));
+
     this.connectWatson(messages);
   }
+
+  
 
  connectWatson(messages) {
     console.log(messages[0]);
     console.log(JSON.stringify({
-      input: messages[0].text,
+      this.state.watsonInput,
       
     }));
     fetch("https://us-south.functions.cloud.ibm.com/api/v1/web/Paz%20Org_dev/default/inventoryapi.json", {
@@ -45,14 +67,14 @@ export default class App extends React.Component {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      input: messages[0].text,
+      this.state.watsonInput,
       
     }),
   }).then((response) => {
-    console.log(response);
 
     var res = response.json();
-    return res["_bodyText"];
+    
+    return res;
     })
       .then((responseJson) => {
         console.log(responseJson);
@@ -69,6 +91,12 @@ export default class App extends React.Component {
                 name:"Watson Assistant"
               },
             }),
+            watsonInput:{
+              input:"",
+              sessionId:responseJson.sessionId,
+              messageContext:responseJson.messageContext
+
+            }
           }
       })
       .catch((error) => {
