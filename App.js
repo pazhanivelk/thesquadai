@@ -73,7 +73,6 @@ export default class App extends React.Component {
   }).then((response) => {
 
     var res = response.json();
-    
     return res;
     })
       .then((responseJson) => {
