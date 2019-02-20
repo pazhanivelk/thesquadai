@@ -5,9 +5,8 @@ export default class App extends React.Component {
   state = {
     messages: [],
     watsoninput:{
-      input:"",
-      sessionId:"",
-      messageContext:""
+      input:""
+      
     },
 
 
@@ -28,9 +27,8 @@ export default class App extends React.Component {
         },
       ],
       watsoninput:{
-        input:"",
-        sessionId:"",
-        messageContext:""
+        input:""
+        
       },
   
     }
@@ -40,36 +38,39 @@ export default class App extends React.Component {
 
   onSend(messages = []) {
     console.log("messages "+ messages);
-    this.setState(previousState => ({
+    var watsonInput = {};
+    this.setState(previousState => {
+      watsonInput = previousState.watsoninput;
+      watsonInput.input = messages[0].text;
+      this.setState({
       messages: GiftedChat.append(previousState.messages, messages),
-      watsoninput:{
-        input:messages[0].text,
-        sessionId:previousState.sessionId,
-        messageContext:previousState.messageContext
-      }
-    }));
+      watsoninput:watsonInput
+    });
+    console.log(watsonInput)
+     this.connectWatson(messages, watsonInput);
+    }
+    );
 
-    this.connectWatson(messages);
+   
   }
 
   
 
- connectWatson(messages) {
+ connectWatson(messages, watsonInput) {
     console.log(messages[0]);
-    console.log(JSON.stringify({
-      this.state.watsonInput,
-      
-    }));
+    console.log("input " +JSON.stringify(
+      watsonInput
+    ));
     fetch("https://us-south.functions.cloud.ibm.com/api/v1/web/Paz%20Org_dev/default/inventoryapi.json", {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      this.state.watsonInput,
+    body: JSON.stringify(
+      watsonInput
       
-    }),
+    ),
   }).then((response) => {
 
     var res = response.json();
@@ -77,13 +78,15 @@ export default class App extends React.Component {
     })
       .then((responseJson) => {
         console.log(responseJson);
-        var text = responseJson.response;
-        console.log(text);
+
+
+        var textFromResponse = getString(responseJson.output);
+        console.log("text from getString" +textFromResponse);
         this.setState((previousState) => {
           return {
             messages: GiftedChat.append(previousState.messages, {
               _id: Math.round(Math.random() * 1000000),
-              text: text,
+              text: textFromResponse,
               createdAt: new Date(),
               user:{
                 _id:2,
@@ -119,4 +122,27 @@ export default class App extends React.Component {
       />
     )
   }
+}
+
+function getString(obj){
+  var returnStr = "";
+  var generics= obj.generic;
+  
+  generics.forEach(function (response){
+    console.log(response.response_type);
+    if (response.response_type ==='option'){
+        returnStr = returnStr + response.title +"\n";
+        response.options.forEach(function(option, index){
+          returnStr = returnStr + "\t" + index + " :" + option.value.input.text+"\n";
+        });
+    }
+    if (response.response_type==='text'){
+      returnStr = response.text;
+
+      
+    }
+  });
+
+  console.log("Return STr" +returnStr);
+  return returnStr;
 }
