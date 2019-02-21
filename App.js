@@ -46,7 +46,7 @@ export default class App extends React.Component {
       messages: GiftedChat.append(previousState.messages, messages),
       watsoninput:watsonInput
     });
-    console.log(watsonInput)
+    
      this.connectWatson(messages, watsonInput);
     }
     );
@@ -58,7 +58,7 @@ export default class App extends React.Component {
 
  connectWatson(messages, watsonInput) {
     console.log(messages[0]);
-    console.log("input " +JSON.stringify(
+    console.log("input :" +JSON.stringify(
       watsonInput
     ));
     fetch("https://us-south.functions.cloud.ibm.com/api/v1/web/Paz%20Org_dev/default/inventoryapi.json", {
@@ -77,11 +77,11 @@ export default class App extends React.Component {
     return res;
     })
       .then((responseJson) => {
-        console.log(responseJson);
+       
 
 
         var textFromResponse = getString(responseJson.output);
-        console.log("text from getString" +textFromResponse);
+       
         this.setState((previousState) => {
           return {
             messages: GiftedChat.append(previousState.messages, {
@@ -93,7 +93,7 @@ export default class App extends React.Component {
                 name:"Watson Assistant"
               },
             }),
-            watsonInput:{
+            watsoninput:{
               input:"",
               sessionId:responseJson.sessionId,
               messageContext:responseJson.messageContext
@@ -137,9 +137,7 @@ function getString(obj){
         });
     }
     if (response.response_type==='text'){
-      returnStr = response.text;
-
-      
+      returnStr = response.text;      
     }
   });
 
