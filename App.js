@@ -5,8 +5,19 @@ export default class App extends React.Component {
   state = {
     messages: [],
     watsoninput:{
-      input:""
-      
+      input:"",
+      messageContext: {
+        global: {
+          system: {
+            turn_count: 1
+          }
+        },
+        skills: {
+          "main skill": {
+            user_defined: {}
+          }
+        }
+      },
     },
 
 
@@ -26,10 +37,7 @@ export default class App extends React.Component {
           },
         },
       ],
-      watsoninput:{
-        input:""
-        
-      },
+     
   
     }
    
@@ -61,7 +69,7 @@ export default class App extends React.Component {
     console.log("input :" +JSON.stringify(
       watsonInput
     ));
-    fetch("https://us-south.functions.cloud.ibm.com/api/v1/web/Paz%20Org_dev/default/inventoryapi.json", {
+    fetch("https://us-south.functions.cloud.ibm.com/api/v1/web/Paz%20Org_dev/default/inventoryapi.json?cache-bust=" + Date.now(), {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -71,22 +79,20 @@ export default class App extends React.Component {
       watsonInput
       
     ),
-  }).then((response) => {
-
-    var res = response.json();
-    return res;
-    })
+  }).then((response) => (response.json()))
       .then((responseJson) => {
        
+        console.log(  responseJson);
+        var watsonresponse = responseJson.response;
+        var sessionId = responseJson.sessionId;
+        var messageContext = responseJson.messageContext;
 
-
-        var textFromResponse = getString(responseJson.output);
        
         this.setState((previousState) => {
           return {
             messages: GiftedChat.append(previousState.messages, {
               _id: Math.round(Math.random() * 1000000),
-              text: textFromResponse,
+              text: watsonresponse,
               createdAt: new Date(),
               user:{
                 _id:2,
@@ -95,15 +101,13 @@ export default class App extends React.Component {
             }),
             watsoninput:{
               input:"",
-              sessionId:responseJson.sessionId,
-              messageContext:responseJson.messageContext
+              sessionId:sessionId,
+              messageContext:messageContext
 
             }
           }
       })
-      .catch((error) => {
-        console.error(error);
-      });
+      
 
       })
 
@@ -122,25 +126,4 @@ export default class App extends React.Component {
       />
     )
   }
-}
-
-function getString(obj){
-  var returnStr = "";
-  var generics= obj.generic;
-  
-  generics.forEach(function (response){
-    console.log(response.response_type);
-    if (response.response_type ==='option'){
-        returnStr = returnStr + response.title +"\n";
-        response.options.forEach(function(option, index){
-          returnStr = returnStr + "\t" + index + " :" + option.value.input.text+"\n";
-        });
-    }
-    if (response.response_type==='text'){
-      returnStr = response.text;      
-    }
-  });
-
-  console.log("Return STr" +returnStr);
-  return returnStr;
 }
